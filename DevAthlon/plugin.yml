@@ -1,0 +1,4 @@
+name: DevAthlon
+version: 0.0.1
+main: de.nonamelabs.devathlon.Plugin_DevAthlon
+commands: 
