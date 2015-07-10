@@ -11,44 +11,50 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class LootBoxen {
+	//Alles von PhoenixofForce
+	
+	//Inventar Shop															//Name in Rot
 	public static Inventory Shop = Bukkit.createInventory(null, 9, ChatColor.RED + "Kaufe Nahrung, Tränke, verbesser deine Rüstung und Waffen");
 	static {
-		Shop.setItem(1, new ItemStack(Nahrung()));
-		Shop.setItem(4, new ItemStack(getArmorUpgrade()));
-		Shop.setItem(7, new ItemStack(getWeaponUpgrade()));
+		Shop.setItem(1, new ItemStack(Nahrung()));					//Der zweite Slot im Inventar, ist das Item um Essen zu kaufen
+		/*Shop.setItem(4, new ItemStack(getArmorUpgrade()));		/Entfernte Funktion, sollte eigentlich Waffen und Rüstung verbessern
+		Shop.setItem(7, new ItemStack(getWeaponUpgrade()));*/
 	}
 	
+	/*
 	public static Inventory ArmorUpgrade = Bukkit.createInventory(null, 9, ChatColor.RED + "Verbessere deine Rüstung");
 	static{
 		ArmorUpgrade.setItem(1, new ItemStack(Material.DIAMOND_HELMET));
-		ArmorUpgrade.setItem(3, new ItemStack(Material.DIAMOND_CHESTPLATE));
-		ArmorUpgrade.setItem(5, new ItemStack(Material.DIAMOND_LEGGINGS));
+		ArmorUpgrade.setItem(3, new ItemStack(Material.DIAMOND_CHESTPLATE));		Entfernte Funktion
+		ArmorUpgrade.setItem(5, new ItemStack(Material.DIAMOND_LEGGINGS));			Man Sollte eigentlich aussuchen können, welches Rüstungsteil verbessert werden soll
 		ArmorUpgrade.setItem(7, new ItemStack(Material.DIAMOND_BOOTS));
-	}
+	}*/
 	
 	
 	public static Inventory getShopInventory() {
-		return Shop;
+		return Shop;								//gibt Inventar zurück
 	}
 	
-	public static Inventory getArmorUpgradeInventory() {
+	/*public static Inventory getArmorUpgradeInventory() {
 		return ArmorUpgrade;
-	}
+	}*/
 	
 	//LootItems
+	
+	//NahrungsItem
 	public static ItemStack Nahrung() {
-		ItemStack item = new ItemStack(Material.COOKED_CHICKEN);
-		List<String> lore = new ArrayList<String>();
-		lore.add(ChatColor.GREEN + "Alles Nestle, alles Hühnchen");
-		lore.add(ChatColor.GREEN + "1Punkt = 1Nestle");
+		ItemStack item = new ItemStack(Material.COOKED_CHICKEN);	//Ist ein gekochtes Huhn
+		List<String> lore = new ArrayList<String>();				
+		lore.add(ChatColor.GREEN + "Alles Nestle, alles Hühnchen");	//Ein Untertitel, der sichtbar wird wenn man im Inventar den Mauszeiger über das Item legt
+		lore.add(ChatColor.GREEN + "1Punkt = 1Nestle");				//Dittp
 		ItemMeta meta = item.getItemMeta();
-		meta.setDisplayName(ChatColor.BLUE + "Essen für hungrige Kerlchen");
+		meta.setDisplayName(ChatColor.BLUE + "Essen für hungrige Kerlchen");	//Der Neue Name des Items #SchwarzZuBlau
 		meta.setLore(lore);
 		item.setItemMeta(meta);
-
 		return item;
 	}
 	
+	/*Entfernter Inhalt
 	public static ItemStack getWeaponUpgrade() {
 		ItemStack item = new ItemStack(Material.DIAMOND_SWORD);
 		List<String> lore = new ArrayList<String>();
@@ -75,5 +81,5 @@ public class LootBoxen {
 
 		return item;
 	}
-	
+	*/
 }
