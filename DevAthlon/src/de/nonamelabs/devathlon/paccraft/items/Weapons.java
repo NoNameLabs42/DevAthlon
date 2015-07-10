@@ -9,12 +9,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class Weapons {
+	//Alles von PhoenixofForce
+	//Holzschwert
 	public static ItemStack WoodenSword() {
-		ItemStack item = new ItemStack(Material.WOOD_SWORD);
+		ItemStack item = new ItemStack(Material.WOOD_SWORD);//Holzschwertz
 		List<String> lore = new ArrayList<String>();
-		lore.add(ChatColor.GREEN + "Das mutige Schwert");
+		lore.add(ChatColor.GREEN + "Das mutige Schwert");	//Untertitel
 		ItemMeta meta = item.getItemMeta();
-		meta.setDisplayName(ChatColor.BLUE + "Excalibur - Prototyp");
+		meta.setDisplayName(ChatColor.BLUE + "Excalibur - Prototyp"); //Name
 		meta.setLore(lore);
 		item.setItemMeta(meta);
 
