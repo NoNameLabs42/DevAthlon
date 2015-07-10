@@ -6,7 +6,7 @@ commands:
     description: Startet das Spiel
     usage: /startgame <players> <ghosts>
   addPlayerSpawn:
-    description: Fügt einen weiteren Spieler-Spawn hinzu
+    description: Fuegt einen weiteren Spieler-Spawn hinzu
     usage: /addPlayerSpawn
   resetPlayerSpawns:
     description: Setzt die Spieler-Spawns zurück
