@@ -14,7 +14,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 
 public class LootBoxen {
-	//LotBox
 	public static Inventory Shop = Bukkit.createInventory(null, 9, ChatColor.RED + "Kaufe Nahrung, Tränke, verbesser deine Rüstung und Waffen");
 	static {
 		Shop.setItem(1, new ItemStack(Nahrung()));
@@ -52,7 +51,6 @@ public class LootBoxen {
 		if(p.getInventory().contains(Weapons.WoodenSword())) lore.add(ChatColor.GREEN + "Kosten: 50");
 		if(p.getInventory().contains(Weapons.StoneSword())) lore.add(ChatColor.GREEN + "Kosten: 250");
 		if(p.getInventory().contains(Weapons.IronSword())) lore.add(ChatColor.GREEN + "Kosten: 600");
-		
 		
 		
 		ItemMeta meta = item.getItemMeta();
