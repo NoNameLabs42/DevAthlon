@@ -47,6 +47,7 @@ import de.nonamelabs.devathlon.paccraft.items.LootBoxen;
 import de.nonamelabs.devathlon.paccraft.items.Weapons;
 
 public class Game implements Listener{
+	//Von Lau
 	public static final ChatColor PLUGIN_COLOR = ChatColor.AQUA;
 	public static final ChatColor CHATCOLOR = ChatColor.WHITE;
 	public static final ChatColor PLUGIN_NAME_COLOR = ChatColor.DARK_PURPLE;
@@ -350,30 +351,42 @@ public class Game implements Listener{
 		scoreboards.remove(event.getPlayer());
 	}
 	
-	
+	//Von PhoenixoForce
 	@EventHandler
-	public void onPlayerClick(PlayerInteractEvent event){
+	public void onPlayerClick(PlayerInteractEvent event){	//Wenn der Spieler mit Irgendetwas interagiert wird dieses Event aufgerufen
 		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && event.getItem() != null) {
-			event.setCancelled(true);
+			//Wenn der Spieler rechtsklick mit einem Item in der Hand macht
+			event.setCancelled(true);	//Eigentliche Event wird unterdrückt
 			if (event.getItem().equals((Items.Shop()))) {
+				//und das Item das Shop-Item ist
 				event.setCancelled(true);
 				event.getPlayer().openInventory(LootBoxen.getShopInventory());
+				//Öffne das Shop-Inventar
 			}
 		}
 	}
 	@EventHandler
-	public void onInventoryClick(InventoryClickEvent event) {
+	public void onInventoryClick(InventoryClickEvent event) {  //wenn der Spieler in seinem Inventar etwas Anklickt wird dieses Ecent aufgerufen
 		event.setCancelled(true);
 			
 		ItemStack clicked_item = event.getCurrentItem();
+		//clicked_item ist das Item auf das der Spieler geklickt hat
 		Player p = (Player) event.getWhoClicked();
+		//p ist der Spieler der geklickt hat
 				
 		if (event.getInventory().getName().equals(Items.Shop())) {		
+			//wenn das Shop Inventar offen ist
 			if (clicked_item.equals(LootBoxen.Nahrung())) {
-				p.getInventory().addItem(new ItemStack(Material.COOKED_CHICKEN));			
-			}else if(clicked_item.equals(LootBoxen.getArmorUpgrade())){
+				//und das NahrungsItem Angeklickt wurde
+				if(scores.get(p)>=1){
+				//und der Spieler genug Geld hat
+				p.getInventory().addItem(new ItemStack(Material.COOKED_CHICKEN));
+				//Gebe dem Spieler ein Huhn
+				scores.put(p, scores.get(p)-1);
+				//Und entferne ein Geld
+			}}/*else if(clicked_item.equals(LootBoxen.getArmorUpgrade())){
 				event.getWhoClicked().openInventory(LootBoxen.getArmorUpgradeInventory());
-			}else if(clicked_item.equals(LootBoxen.getWeaponUpgrade())){
+			}else if(clicked_item.equals(LootBoxen.getWeaponUpgrade())){    	Entfernter Inhalt
 				if(p.getInventory().contains(Weapons.WoodenSword())){
 					p.getInventory().remove(Weapons.WoodenSword());
 					p.getInventory().addItem(Weapons.StoneSword());		
@@ -383,11 +396,11 @@ public class Game implements Listener{
 				}else if(p.getInventory().contains(Weapons.IronSword())){
 					p.getInventory().remove(Weapons.IronSword());
 					p.getInventory().addItem(Weapons.DiamoSword());
-				}			
+				}			*/
 			}		
 		}
-	}
 	
+	//Von Lau
 	@EventHandler
 	public void onPlayerDamage(EntityDamageEvent event) {
 		
