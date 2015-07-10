@@ -12,6 +12,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 public class Armor {
 	
+	//Von Lau:
 	public static ItemStack setColor(ItemStack itemStack, int r, int g, int b){
         LeatherArmorMeta itemMeta = (LeatherArmorMeta)itemStack.getItemMeta();
         itemMeta.setColor(Color.fromRGB(r, g, b));
@@ -26,9 +27,10 @@ public class Armor {
         return itemStack;
     }
 	
+    //Ab hier von PhoenixofForce
 	public static ItemStack PlayerHelm() {
 		ItemStack item = new ItemStack(Material.LEATHER_HELMET);
-		item = setColor(item, Color.YELLOW);
+		item = setColor(item, Color.YELLOW);														//Diese Zeile von Lau
 		List<String> lore = new ArrayList<String>();
 		lore.add(ChatColor.GREEN + "Der Helm eines Abenteuerers");
 		ItemMeta meta = item.getItemMeta();
@@ -41,7 +43,7 @@ public class Armor {
 	
 	public static ItemStack PlayerChest() {
 		ItemStack item = new ItemStack(Material.LEATHER_CHESTPLATE);
-		item = setColor(item, Color.YELLOW);
+		item = setColor(item, Color.YELLOW);															//Diese Zeile von Lau
 		List<String> lore = new ArrayList<String>();
 		lore.add(ChatColor.GREEN + "Der Brustpanzer eines Abenteuerers");
 		ItemMeta meta = item.getItemMeta();
@@ -67,7 +69,7 @@ public class Armor {
 	
 	public static ItemStack PlayerBoots() {
 		ItemStack item = new ItemStack(Material.LEATHER_BOOTS);
-		item = setColor(item, Color.YELLOW);
+		item = setColor(item, Color.YELLOW);																			//Diese Zeile von Lau
 		List<String> lore = new ArrayList<String>();
 		lore.add(ChatColor.GREEN + "Die Stiefel eines Abenteuerers");
 		ItemMeta meta = item.getItemMeta();
@@ -80,7 +82,7 @@ public class Armor {
 	
 	public static ItemStack GhostHelm() {
 		ItemStack item = new ItemStack(Material.LEATHER_HELMET);
-		item = setColor(item, Color.WHITE);
+		item = setColor(item, Color.WHITE);																						//Diese Zeile von Lau
 		List<String> lore = new ArrayList<String>();
 		lore.add(ChatColor.GREEN + "Der Helm eines unsichtbaren Geistes");
 		ItemMeta meta = item.getItemMeta();
@@ -93,7 +95,7 @@ public class Armor {
 	
 	public static ItemStack GhostChest() {
 		ItemStack item = new ItemStack(Material.LEATHER_CHESTPLATE);
-		item = setColor(item, Color.WHITE);
+		item = setColor(item, Color.WHITE);																					//Diese Zeile von Lau
 		List<String> lore = new ArrayList<String>();
 		lore.add(ChatColor.GREEN + "Der Brustpanzer eines unsichtbaren Geistes");
 		ItemMeta meta = item.getItemMeta();
@@ -106,7 +108,7 @@ public class Armor {
 	
 	public static ItemStack GhostLegs() {
 		ItemStack item = new ItemStack(Material.LEATHER_LEGGINGS);
-		item = setColor(item, Color.WHITE);
+		item = setColor(item, Color.WHITE);																						//Diese Zeile von Lau
 		List<String> lore = new ArrayList<String>();
 		lore.add(ChatColor.GREEN + "Die Thermohose eines unsichtbaren Geistes");
 		ItemMeta meta = item.getItemMeta();
@@ -119,7 +121,7 @@ public class Armor {
 	
 	public static ItemStack GhostBoots() {
 		ItemStack item = new ItemStack(Material.LEATHER_BOOTS);
-		item = setColor(item, Color.WHITE);
+		item = setColor(item, Color.WHITE);																							//Diese Zeile von Lau
 		List<String> lore = new ArrayList<String>();
 		lore.add(ChatColor.GREEN + "Die Stiefel eines unsichtbaren Geistes");
 		ItemMeta meta = item.getItemMeta();
