@@ -3,14 +3,14 @@ version: 0.0.1
 main: de.nonamelabs.devathlon.Plugin_DevAthlon
 commands: 
   startgame:
-    description: Startet das Spiel
+    description: startet das spiel
     usage: /startgame <players> <ghosts>
-  addPlayerSpawn:
-    description: Fuegt einen weiteren Spieler-Spawn hinzu
-    usage: /addPlayerSpawn
-  resetPlayerSpawns:
-    description: Setzt die Spieler-Spawns zurück
-    usage: /resetPlayerSpawns
-  setGhostSpawn:
-    description: Setzt den Geister-Spawn
-    usage: /setGhostSpawn
+  addplayerspawn:
+    description: Fuegt einen weiteren Spieler Spawn hinzu
+    usage: /addplayerspawn
+  resetplayerspawns:
+    description: Setzt die Spieler Spawns zurueck
+    usage: /resetplayerspawns
+  setghostspawn:
+    description: Setzt den Geister Spawn
+    usage: /setghostspawn
