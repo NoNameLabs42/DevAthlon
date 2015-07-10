@@ -180,13 +180,12 @@ public class Plugin_DevAthlon extends JavaPlugin{
 				event.getPlayer().openInventory(LootBoxen.Shop);
 		}
 	}
-	
+}
 		@EventHandler
 		public void onInventoryClick(InventoryClickEvent event) {
 			
 				event.setCancelled(true);
 				
-
 				ItemStack clicked_item = event.getCurrentItem();
 				Player p = (Player) event.getWhoClicked();
 				
@@ -212,7 +211,7 @@ public class Plugin_DevAthlon extends JavaPlugin{
 				}		
 			}
 		}
-	}
+	
 		
 		
 	
