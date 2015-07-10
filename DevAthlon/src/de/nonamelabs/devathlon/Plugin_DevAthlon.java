@@ -4,18 +4,47 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+
 import de.nonamelabs.devathlon.paccraft.Game;
+import de.nonamelabs.devathlon.paccraft.items.LootBoxen;
+import de.nonamelabs.devathlon.paccraft.items.Weapons;
 
 public class Plugin_DevAthlon extends JavaPlugin{
 	public static Plugin_DevAthlon Instance;
+	
+	public int curUpg;
+	
+	public int FirstArmUpg  = 50;
+	public int SecArmUpg	= 250;
+	public int ThirdArmUpg	= 600;
+	public int FourthArmUpg = 1050;
+	public int FiftArmUpg   = 1750;
+	
+	public int FirstWeaUpg  = 50;
+	public int SecWeaUpg	= 250;
+	public int ThirdWeaUpg	= 600;
+	public int FourthWeaUpg = 1050;
+	public int FiftWeaUpg   = 1750;
+	
+	
 	
 	public Logger logger = this.getLogger();
 	
@@ -142,4 +171,61 @@ public class Plugin_DevAthlon extends JavaPlugin{
 		
 		return false;
 	}
+	
+	@EventHandler
+	public void onPlayerClick(PlayerInteractEvent event){
+		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && event.getItem() != null) {
+			if (event.getItem().equals((de.nonamelabs.devathlon.paccraft.items.Items.Shop()))) {
+				event.setCancelled(true);
+				event.getPlayer().openInventory(LootBoxen.Shop);
+		}
+	}
+	
+		@EventHandler
+		public void onInventoryClick(InventoryClickEvent event) {
+			
+				event.setCancelled(true);
+				
+
+				ItemStack clicked_item = event.getCurrentItem();
+				Player p = (Player) event.getWhoClicked();
+				
+				if (event.getInventory().getName().equals(de.nonamelabs.devathlon.paccraft.items.Items.Shop())) {		
+					if (clicked_item.equals(LootBoxen.Nahrung())) {
+						p.getInventory().addItem(new ItemStack(Material.COOKED_CHICKEN));
+						
+					}else if(clicked_item.equals(LootBoxen.getArmorUpgrade())){
+						event.getWhoClicked().openInventory(LootBoxen.ArmorUpgrade);
+					}else if(clicked_item.equals(LootBoxen.getWeaponUpgrade(p))){
+						if(p.getInventory().contains(Weapons.WoodenSword())){
+							p.getInventory().remove(Weapons.WoodenSword());
+							p.getInventory().addItem(Weapons.StoneSword());
+							
+						}else if(p.getInventory().contains(Weapons.StoneSword())){
+							p.getInventory().remove(Weapons.StoneSword());
+							p.getInventory().addItem(Weapons.IronSword());
+						}else if(p.getInventory().contains(Weapons.IronSword())){
+							p.getInventory().remove(Weapons.IronSword());
+							p.getInventory().addItem(Weapons.DiamoSword());
+						}
+						
+				}		
+			}
+		}
+	}
+		
+		
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
