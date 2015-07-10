@@ -14,3 +14,12 @@ commands:
   setghostspawn:
     description: Setzt den Geister Spawn
     usage: /setghostspawn
+  stopgame:
+    description: Stoppt das Spiel
+    usage: /stopgame
+  setMapCorner1:
+    description: Setzt die erste Ecke des Spiels
+    usage: /setMapCorner1
+  setMapCorner2:
+    description: Setzt die zweite Ecke des Spiels
+    usage: /setMapCorner2
