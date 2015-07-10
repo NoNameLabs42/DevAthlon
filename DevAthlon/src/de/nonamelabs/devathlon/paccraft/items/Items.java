@@ -9,12 +9,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class Items {
-	public static ItemStack Shop() {
-		ItemStack item = new ItemStack(Material.NETHER_STAR);
+	//Von PhoenixofForce
+	public static ItemStack Shop() {  //Shop Item
+		ItemStack item = new ItemStack(Material.NETHER_STAR);  //Ein Nether Stern
 		List<String> lore = new ArrayList<String>();
-		lore.add(ChatColor.GREEN + "Kommse ren könnse raus gucken");
+		lore.add(ChatColor.GREEN + "Kommse ren könnse raus gucken");	//mit nem Untertitel
 		ItemMeta meta = item.getItemMeta();
-		meta.setDisplayName(ChatColor.BLUE + "Shop");
+		meta.setDisplayName(ChatColor.BLUE + "Shop");	//Und einem Neuen namen ^^
 		meta.setLore(lore);
 		item.setItemMeta(meta);
 
