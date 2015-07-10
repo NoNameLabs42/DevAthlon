@@ -199,10 +199,16 @@ public class Plugin_DevAthlon extends JavaPlugin{
 				return false;
 			}
 			
+			if (game != null) {
+				sender.sendMessage(ChatColor.RED + "Das Spiel ist bereits gestartet!");
+				return false;
+			}
+			
+			sender.sendMessage(ChatColor.GREEN + "Das Spiel wurde mit " + players + " Spielern und " + ghosts + " Geistern gestartet!");
+			
 			game = new Game(players, ghosts, playerspawns, ghostspawn, mapcorner1, mapcorner2);
 			getServer().getPluginManager().registerEvents(game, this);
 			
-			sender.sendMessage(ChatColor.GREEN + "Das Spiel wurde mit " + players + " Spielern und " + ghosts + " Geistern gestartet!");
 			return true;
 		} else if (commandlabel.equalsIgnoreCase("stopgame")) {
 			if (game != null) {
