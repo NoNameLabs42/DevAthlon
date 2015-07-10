@@ -17,4 +17,5 @@ public class Plugin_DevAthlon extends JavaPlugin{
 	public void onDisable() {
 		logger.info("Plugin wurde gestoppt!");
 	}
+	
 }
