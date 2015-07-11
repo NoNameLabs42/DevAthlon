@@ -78,6 +78,18 @@ public class LootBoxen {
 		return item;
 	}
 	
+	public static ItemStack Multiplyer() {
+		ItemStack item = new ItemStack(Material.GOLD_BLOCK);	
+		List<String> lore = new ArrayList<String>();				
+		lore.add(ChatColor.GREEN + "Man bekommt doppelt so viel Gold wie ursprünglich");
+		lore.add(ChatColor.GREEN + "Hält eine Minute");
+		lore.add(ChatColor.GREEN + "100 Punkte");				
+		ItemMeta meta = item.getItemMeta();
+		meta.setDisplayName(ChatColor.BLUE + "Doppelt so viel Gold");	
+		meta.setLore(lore);
+		item.setItemMeta(meta);
+		return item;
+	}
 	
 	/*Entfernter Inhalt
 	public static ItemStack getWeaponUpgrade() {
