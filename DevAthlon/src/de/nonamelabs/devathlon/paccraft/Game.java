@@ -29,6 +29,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -181,6 +182,8 @@ public class Game implements Listener{
 					p.teleport(p.getWorld().getSpawnLocation());
 					p.setGameMode(GameMode.ADVENTURE);
 					p.removePotionEffect(PotionEffectType.BLINDNESS);
+					p.removePotionEffect(PotionEffectType.HUNGER);
+					p.setFoodLevel(20);
 					if (!spectator_list.contains(p)) {
 						sendGameMessage("Du hast " + scores.get(p) + " Punkte erreicht",p);
 					}
@@ -371,6 +374,7 @@ public class Game implements Listener{
 			p.setPlayerListName(p.getDisplayName());
 			p.setPlayerWeather(WeatherType.CLEAR);
 			p.removePotionEffect(PotionEffectType.BLINDNESS);
+			p.removePotionEffect(PotionEffectType.HUNGER);
 			p.getInventory().clear();
 			p.getInventory().setArmorContents(new ItemStack[4]);
 			
@@ -411,7 +415,7 @@ public class Game implements Listener{
 	
 	@EventHandler
 	public void onPlayerDamage(EntityDamageEvent event) {
-		if (!event.getCause().equals(DamageCause.ENTITY_ATTACK)) {
+		if (!event.getCause().equals(DamageCause.ENTITY_ATTACK) && !event.getCause().equals(DamageCause.STARVATION)) {
 			event.setCancelled(true);	
 		}
 	}
@@ -434,7 +438,7 @@ public class Game implements Listener{
 	
 	@EventHandler
 	public void onPlayerLooseHunger(FoodLevelChangeEvent event) {
-		if (!player_list.contains((Player) event.getEntity())) {
+		if (!player_list.contains((Player) event.getEntity()) || r.nextBoolean()) {
 			event.setCancelled(true);
 		} else {
 			event.setCancelled(false);
@@ -535,6 +539,21 @@ public class Game implements Listener{
 		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && event.getItem() != null) {
 			//Wenn der Spieler rechtsklick mit einem Item in der Hand macht
 			event.setCancelled(true);	//Eigentliche Event wird unterdrückt
+			
+			ItemStack clicked = event.getItem().clone();
+			clicked.setAmount(1);
+			if (clicked.equals(LootBoxen.Nahrung())) {
+				if (event.getPlayer().getFoodLevel() < 20) {
+					if (event.getItem().getAmount() <= 1) {
+						event.getPlayer().getInventory().remove(event.getItem());
+					} else {
+						event.getItem().setAmount(event.getItem().getAmount() - 1);
+					}
+					event.getPlayer().setFoodLevel(event.getPlayer().getFoodLevel() + 3);
+				}
+				
+			}
+			
 			if (event.getItem().equals((Items.Shop()))) {
 				//und das Item das Shop-Item ist
 				event.setCancelled(true);
