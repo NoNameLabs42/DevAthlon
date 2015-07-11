@@ -37,6 +37,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -581,7 +582,34 @@ public class Game implements Listener{
 				//Gebe dem Spieler ein Huhn
 				scores.put(p, scores.get(p)-1);
 				//Und entferne ein Geld
-			}}/*else if(clicked_item.equals(LootBoxen.getArmorUpgrade())){
+			}}else if(clicked_item.equals(LootBoxen.SpeedTrank())){
+				if(scores.get(p)>=5){
+					//und der Spieler genug Geld hat
+					p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 2, false, true));
+					scores.put(p, scores.get(p)-10);
+					//Und entferne ein Geld
+				}
+			}}else if(clicked_item.equals(LootBoxen.HeilTrank())){
+				if(scores.get(p)>=10){
+					//und der Spieler genug Geld hat
+					p.setHealth(p.getHealth()+3);
+					scores.put(p, scores.get(p)-10);
+					//Und entferne ein Geld
+				}	
+			}else if(clicked_item.equals(LootBoxen.Multiplyer())){
+				if(scores.get(p)>=100){
+					//und der Spieler genug Geld hat
+					
+					scores.put(p, scores.get(p)-100);
+					//Und entferne ein Geld
+				}	
+			}
+			
+			
+			
+			
+			
+			/*else if(clicked_item.equals(LootBoxen.getArmorUpgrade())){
 				event.getWhoClicked().openInventory(LootBoxen.getArmorUpgradeInventory());
 			}else if(clicked_item.equals(LootBoxen.getWeaponUpgrade())){    	Entfernter Inhalt
 				if(p.getInventory().contains(Weapons.WoodenSword())){
