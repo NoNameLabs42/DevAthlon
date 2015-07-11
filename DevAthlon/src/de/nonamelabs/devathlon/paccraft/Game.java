@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -28,6 +29,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -140,8 +142,56 @@ public class Game implements Listener{
 						e.printStackTrace();
 					}
 				}
+
+				if (!task_running) return;
 				
-				//TODO: finish Game!
+				sendGameMessage("Das Spiel ist zu Ende");
+				
+				Player p1 = null, p2 = null, p3 = null;
+				
+				for (Player player: player_list) {
+					if (p1 == null || scores.get(p1) < scores.get(player)) {
+						p3 = p2;
+						p2 = p1;
+						p1 = player;
+					} else if (p2 == null || scores.get(p2) < scores.get(player)) {
+						p3 = p2;
+						p2 = player;
+					} else if (p3 == null || scores.get(p3) < scores.get(player)) {
+						p3 = player;
+					}
+				}
+				
+				for (Player player: ghost_list) {
+					if (p1 == null || scores.get(p1) < scores.get(player)) {
+						p3 = p2;
+						p2 = p1;
+						p1 = player;
+					} else if (p2 == null || scores.get(p2) < scores.get(player)) {
+						p3 = p2;
+						p2 = player;
+					} else if (p3 == null || scores.get(p3) < scores.get(player)) {
+						p3 = player;
+					}
+				}
+				
+				sendGameMessage(p1.getDisplayName() + PLUGIN_COLOR + " hat mit " + scores.get(p1) + " Punkten gewonnen!");
+				
+				for (Player p: Bukkit.getOnlinePlayers()) {
+					p.teleport(p.getWorld().getSpawnLocation());
+					p.setGameMode(GameMode.ADVENTURE);
+					p.removePotionEffect(PotionEffectType.BLINDNESS);
+					if (!spectator_list.contains(p)) {
+						sendGameMessage("Du hast " + scores.get(p) + " Punkte erreicht",p);
+					}
+				}
+				
+				sendGameMessage(ChatColor.GOLD + "Du hast den 1. Platz belegt!", p1);
+				sendGameMessage(ChatColor.GRAY + "Du hast den 2. Platz belegt!", p2);
+				sendGameMessage(ChatColor.DARK_GRAY + "Du hast den 3. Platz belegt!", p3);
+				
+				
+				stopGame();
 			}
 		});
 	}
@@ -175,7 +225,8 @@ public class Game implements Listener{
 		p.setExp(0);
 		p.setLevel(0);
 		p.setPlayerWeather(WeatherType.DOWNFALL);
-		p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 4));
+		p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 4, false, true));
+		p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 999999, 1, false, true));
 		p.setDisplayName(ChatColor.YELLOW + p.getName());
 		p.setPlayerListName(ChatColor.YELLOW + p.getName());
 		scores.put(p, 0);
@@ -184,6 +235,7 @@ public class Game implements Listener{
 		inv.clear();	
 		inv.setArmorContents(new ItemStack[] {Armor.PlayerBoots(), Armor.PlayerLegs(), Armor.PlayerChest(), Armor.PlayerHelm()});
 		inv.setItem(8, Items.Shop());
+		inv.setItem(0, Weapons.WoodenSword());
 		
 		sendGameMessage("Du bist ein Spieler!", p);
 		updateScoreboards();
@@ -197,7 +249,7 @@ public class Game implements Listener{
 		p.setFoodLevel(20);
 		p.setExp(0);
 		p.setLevel(0);
-		p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 2));
+		p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 2, false, true));
 		p.setDisplayName(ChatColor.WHITE + p.getName());
 		p.setPlayerListName(ChatColor.WHITE + p.getName());
 		scores.put(p, 0);
@@ -206,6 +258,7 @@ public class Game implements Listener{
 		inv.clear();	
 		inv.setArmorContents(new ItemStack[] {Armor.GhostBoots(), Armor.GhostLegs(), Armor.GhostChest(), Armor.GhostHelm()});
 		inv.setItem(8, Items.Shop());
+		inv.setItem(0, Weapons.StoneSword());
 		
 		sendGameMessage("Du bist ein Geist!", p);
 		updateScoreboards();
@@ -256,10 +309,10 @@ public class Game implements Listener{
 		} else if (spectator_list.contains(p)) {
 			obj.getScore(PLUGIN_NAME_COLOR + "Zuschauer").setScore(curr++);
 		}
-		obj.getScore(PLUGIN_COLOR + "---------------").setScore(curr++);
+		obj.getScore("---------------").setScore(curr++);
 		obj.getScore(PLUGIN_COLOR + "Geister: " + ghost_list.size()).setScore(curr++);
 		obj.getScore(PLUGIN_COLOR + "Spieler: " + player_list.size()).setScore(curr++);
-		obj.getScore(ChatColor.RESET + "" + PLUGIN_COLOR + "---------------").setScore(curr++);
+		obj.getScore(ChatColor.RESET + "---------------").setScore(curr++);
 		
 		Player p1 = null, p2 = null, p3 = null;
 		
@@ -292,7 +345,7 @@ public class Game implements Listener{
 		if (p3 != null)	obj.getScore(ChatColor.DARK_GRAY + "3. " + p3.getName() + " - " + scores.get(p3)).setScore(curr++);
 		if (p2 != null) obj.getScore(ChatColor.GRAY + "2. " + p2.getName() + " - " + scores.get(p2)).setScore(curr++);		
 		if (p1 != null) obj.getScore(ChatColor.GOLD + "1. " + p1.getName() + " - " + scores.get(p1)).setScore(curr++);
-		obj.getScore(ChatColor.RESET + "" + ChatColor.RESET + PLUGIN_COLOR + "---------------").setScore(curr++);
+		obj.getScore(ChatColor.RESET + "" + ChatColor.RESET + "---------------").setScore(curr++);
 		obj.getScore(PLUGIN_COLOR + "Zeit: " + remainingTime).setScore(curr++);
 	}
 	
@@ -330,6 +383,11 @@ public class Game implements Listener{
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		event.setJoinMessage("");
+		
+		Scoreboard sc = Bukkit.getScoreboardManager().getNewScoreboard();
+		scoreboards.put(event.getPlayer(), sc);
+		event.getPlayer().setScoreboard(sc);
+		
 		spectator_list.add(event.getPlayer());
 		initSpectator(event.getPlayer(), ghostspawn);
 	}
@@ -351,59 +409,26 @@ public class Game implements Listener{
 		scoreboards.remove(event.getPlayer());
 	}
 	
-	//Von PhoenixoForce
-	@EventHandler
-	public void onPlayerClick(PlayerInteractEvent event){	//Wenn der Spieler mit Irgendetwas interagiert wird dieses Event aufgerufen
-		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && event.getItem() != null) {
-			//Wenn der Spieler rechtsklick mit einem Item in der Hand macht
-			event.setCancelled(true);	//Eigentliche Event wird unterdrückt
-			if (event.getItem().equals((Items.Shop()))) {
-				//und das Item das Shop-Item ist
-				event.setCancelled(true);
-				event.getPlayer().openInventory(LootBoxen.getShopInventory());
-				//Öffne das Shop-Inventar
-			}
-		}
-	}
-	@EventHandler
-	public void onInventoryClick(InventoryClickEvent event) {  //wenn der Spieler in seinem Inventar etwas Anklickt wird dieses Ecent aufgerufen
-		event.setCancelled(true);
-			
-		ItemStack clicked_item = event.getCurrentItem();
-		//clicked_item ist das Item auf das der Spieler geklickt hat
-		Player p = (Player) event.getWhoClicked();
-		//p ist der Spieler der geklickt hat
-				
-		if (event.getInventory().getName().equals(Items.Shop())) {		
-			//wenn das Shop Inventar offen ist
-			if (clicked_item.equals(LootBoxen.Nahrung())) {
-				//und das NahrungsItem Angeklickt wurde
-				if(scores.get(p)>=1){
-				//und der Spieler genug Geld hat
-				p.getInventory().addItem(new ItemStack(Material.COOKED_CHICKEN));
-				//Gebe dem Spieler ein Huhn
-				scores.put(p, scores.get(p)-1);
-				//Und entferne ein Geld
-			}}/*else if(clicked_item.equals(LootBoxen.getArmorUpgrade())){
-				event.getWhoClicked().openInventory(LootBoxen.getArmorUpgradeInventory());
-			}else if(clicked_item.equals(LootBoxen.getWeaponUpgrade())){    	Entfernter Inhalt
-				if(p.getInventory().contains(Weapons.WoodenSword())){
-					p.getInventory().remove(Weapons.WoodenSword());
-					p.getInventory().addItem(Weapons.StoneSword());		
-				}else if(p.getInventory().contains(Weapons.StoneSword())){
-					p.getInventory().remove(Weapons.StoneSword());
-					p.getInventory().addItem(Weapons.IronSword());
-				}else if(p.getInventory().contains(Weapons.IronSword())){
-					p.getInventory().remove(Weapons.IronSword());
-					p.getInventory().addItem(Weapons.DiamoSword());
-				}			*/
-			}		
-		}
-	
-	//Von Lau
 	@EventHandler
 	public void onPlayerDamage(EntityDamageEvent event) {
-		
+		if (!event.getCause().equals(DamageCause.ENTITY_ATTACK)) {
+			event.setCancelled(true);	
+		}
+	}
+	
+	@EventHandler
+	public void onItemDamage(PlayerItemDamageEvent event) {
+		event.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onPlayerDamagePlayer(EntityDamageByEntityEvent event) {
+		if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
+			if (ghost_list.contains(((Player)event.getDamager())) && player_list.contains(((Player)event.getEntity()))) {				
+				event.setCancelled(false);
+				return;
+			}
+		}
 		event.setCancelled(true);
 	}
 	
@@ -411,6 +436,8 @@ public class Game implements Listener{
 	public void onPlayerLooseHunger(FoodLevelChangeEvent event) {
 		if (!player_list.contains((Player) event.getEntity())) {
 			event.setCancelled(true);
+		} else {
+			event.setCancelled(false);
 		}
 	}
 	
@@ -457,11 +484,23 @@ public class Game implements Listener{
 			updateScoreboard(p);
 		}
 		event.setCancelled(true);
-	}	
+	}
 	
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		final Player p = event.getEntity();
+		
+		if (p.getLastDamageCause().getEntity() instanceof Player) {
+			Player p2 = (Player) p.getKiller();
+			
+			sendGameMessage(p2.getDisplayName() + PLUGIN_COLOR + " hat " + p.getDisplayName() + PLUGIN_COLOR + " getötet!");
+			sendGameMessage("Du wurdes von " + p2.getDisplayName() + PLUGIN_COLOR + " getötet!", p);
+			sendGameMessage("Du hast " + p.getDisplayName() + PLUGIN_COLOR + " getötet!", p2);
+			
+			scores.put(p2, scores.get(p2) + scores.get(p)/4);
+			scores.put(p, scores.get(p) - scores.get(p)/4);
+		}
+		
 		event.setDeathMessage("");
 		event.setKeepInventory(true);
 		event.setDroppedExp(0);
@@ -470,10 +509,9 @@ public class Game implements Listener{
 		if (ghost_list.contains(p)) {
 			l = ghostspawn;
 		} else if (player_list.contains(p)) {
-			l = playerspawns.get(r.nextInt(playerspawns.size()));
+			l = playerspawns.get(r.nextInt(playerspawns.size()));;
 		}
 		final Location spawnpoint = l;
-		
 		
 		Bukkit.getScheduler().runTaskLater(Plugin_DevAthlon.Instance, new Runnable() {
 			
@@ -481,7 +519,62 @@ public class Game implements Listener{
 			public void run() {
 				p.spigot().respawn();
 				p.teleport(spawnpoint);
+				if (player_list.contains(p)) {
+					p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 4, false, true));
+					p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 999999, 1, false, true));
+				} else if (ghost_list.contains(p)) {
+					p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 2, false, true));
+				}
 			}
 		}, 60L);
+	}
+	
+	//Von PhoenixoForce
+	@EventHandler
+	public void onPlayerClick(PlayerInteractEvent event){	//Wenn der Spieler mit Irgendetwas interagiert wird dieses Event aufgerufen
+		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && event.getItem() != null) {
+			//Wenn der Spieler rechtsklick mit einem Item in der Hand macht
+			event.setCancelled(true);	//Eigentliche Event wird unterdrückt
+			if (event.getItem().equals((Items.Shop()))) {
+				//und das Item das Shop-Item ist
+				event.setCancelled(true);
+				event.getPlayer().openInventory(LootBoxen.getShopInventory());
+				//Öffne das Shop-Inventar
+			}
+		}
+	}
+	@EventHandler
+	public void onInventoryClick(InventoryClickEvent event) {  //wenn der Spieler in seinem Inventar etwas Anklickt wird dieses Ecent aufgerufen
+		event.setCancelled(true);
+			
+		ItemStack clicked_item = event.getCurrentItem();
+		//clicked_item ist das Item auf das der Spieler geklickt hat
+		Player p = (Player) event.getWhoClicked();
+		//p ist der Spieler der geklickt hat
+				
+		if (event.getInventory().getName().equals(LootBoxen.getShopInventory().getName())) {		
+			//wenn das Shop Inventar offen ist
+			if (clicked_item.equals(LootBoxen.Nahrung())) {
+				//und das NahrungsItem Angeklickt wurde
+				if(scores.get(p)>=1){
+				//und der Spieler genug Geld hat
+				p.getInventory().addItem(LootBoxen.Nahrung());
+				//Gebe dem Spieler ein Huhn
+				scores.put(p, scores.get(p)-1);
+				//Und entferne ein Geld
+			}}/*else if(clicked_item.equals(LootBoxen.getArmorUpgrade())){
+				event.getWhoClicked().openInventory(LootBoxen.getArmorUpgradeInventory());
+			}else if(clicked_item.equals(LootBoxen.getWeaponUpgrade())){    	Entfernter Inhalt
+				if(p.getInventory().contains(Weapons.WoodenSword())){
+					p.getInventory().remove(Weapons.WoodenSword());
+					p.getInventory().addItem(Weapons.StoneSword());		
+				}else if(p.getInventory().contains(Weapons.StoneSword())){
+					p.getInventory().remove(Weapons.StoneSword());
+					p.getInventory().addItem(Weapons.IronSword());
+				}else if(p.getInventory().contains(Weapons.IronSword())){
+					p.getInventory().remove(Weapons.IronSword());
+					p.getInventory().addItem(Weapons.DiamoSword());
+				}			*/
+		}		
 	}
 }
