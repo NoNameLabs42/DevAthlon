@@ -54,6 +54,31 @@ public class LootBoxen {
 		return item;
 	}
 	
+	public static ItemStack HeilTrank() {
+		ItemStack item = new ItemStack(Material.POTION);	
+		List<String> lore = new ArrayList<String>();				
+		lore.add(ChatColor.GREEN + "Heiltrank");	
+		lore.add(ChatColor.GREEN + "10 Punkte");				
+		ItemMeta meta = item.getItemMeta();
+		meta.setDisplayName(ChatColor.BLUE + "Trinken für tote Kerlchen");	
+		meta.setLore(lore);
+		item.setItemMeta(meta);
+		return item;
+	}
+	
+	public static ItemStack SpeedTrank() {
+		ItemStack item = new ItemStack(Material.POTION);	
+		List<String> lore = new ArrayList<String>();				
+		lore.add(ChatColor.GREEN + "Speedtrank");	
+		lore.add(ChatColor.GREEN + "5 Punkte");				
+		ItemMeta meta = item.getItemMeta();
+		meta.setDisplayName(ChatColor.BLUE + "Trinken für langsame Kerlchen");	
+		meta.setLore(lore);
+		item.setItemMeta(meta);
+		return item;
+	}
+	
+	
 	/*Entfernter Inhalt
 	public static ItemStack getWeaponUpgrade() {
 		ItemStack item = new ItemStack(Material.DIAMOND_SWORD);
