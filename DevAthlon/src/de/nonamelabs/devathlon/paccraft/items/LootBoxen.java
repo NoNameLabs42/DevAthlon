@@ -17,6 +17,10 @@ public class LootBoxen {
 	public static Inventory Shop = Bukkit.createInventory(null, 9, ChatColor.RED + "Kaufe Nahrung und Tränke");
 	static {
 		Shop.setItem(1, new ItemStack(Nahrung()));					//Der zweite Slot im Inventar, ist das Item um Essen zu kaufen
+		Shop.setItem(3, new ItemStack(HeilTrank()));
+		Shop.setItem(5, new ItemStack(SpeedTrank()));
+		Shop.setItem(6, new ItemStack(Multiplyer()));
+		
 		/*Shop.setItem(4, new ItemStack(getArmorUpgrade()));		/Entfernte Funktion, sollte eigentlich Waffen und Rüstung verbessern
 		Shop.setItem(7, new ItemStack(getWeaponUpgrade()));*/
 	}
