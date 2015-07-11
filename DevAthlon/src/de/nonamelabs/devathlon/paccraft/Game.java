@@ -29,7 +29,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -37,7 +36,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -56,6 +54,7 @@ public class Game implements Listener{
 	public static final ChatColor CHATCOLOR = ChatColor.WHITE;
 	public static final ChatColor PLUGIN_NAME_COLOR = ChatColor.DARK_PURPLE;
 	public static final Material COIN_MATERIAL = Material.GOLD_NUGGET;
+	public static final Material POWERUP_MATERIAL = Material.EMERALD;
 	public static final Material COIN_BOTTOM_BLOCK = Material.BARRIER;	
 	public static final Material COIN_BOTTOM_BLOCK2 = Material.WOOD;	
 	public static final int TOTAL_TIME = 300;
@@ -65,6 +64,8 @@ public class Game implements Listener{
 	public List<Player> spectator_list = new ArrayList<Player>();
 	public Map<Player, Scoreboard> scoreboards = new HashMap<Player, Scoreboard>();
 	public Map<Player, Integer> scores = new HashMap<Player, Integer>();
+	public Map<Player, Integer> powerup = new HashMap<Player, Integer>();
+	public Map<Player, Integer> multiplyer = new HashMap<Player, Integer>();
 	public List<Location> playerspawns;
 	
 	public int players;
@@ -138,6 +139,37 @@ public class Game implements Listener{
 					
 					updateScoreboards();
 					
+					synchronized (powerup) {
+						List<Player> remove = new ArrayList<Player>();
+						for (Player p: powerup.keySet()) {
+							powerup.put(p,powerup.get(p)-1);
+							if (powerup.get(p) <= 0) {
+								sendGameMessage("Dein Powerup ist zu Ende!", p);
+								remove.add(p);
+							}
+							if (powerup.get(p) != null)	p.setLevel(powerup.get(p));
+						}
+						for (Player p: remove) {
+							powerup.remove(p);
+						}
+					}
+					
+					synchronized (multiplyer) {
+						List<Player> remove = new ArrayList<Player>();
+						
+						for (Player p: multiplyer.keySet()) {
+							multiplyer.put(p,multiplyer.get(p)-1);
+							if (multiplyer.get(p) <= 0) {
+								remove.add(p);
+								sendGameMessage("Dein Multiplikator ist zu Ende!", p);
+							}
+						}
+						
+						for (Player p: remove) {
+							multiplyer.remove(p);
+						}
+					}
+					
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
@@ -147,57 +179,40 @@ public class Game implements Listener{
 
 				if (!task_running) return;
 				
-				sendGameMessage("Das Spiel ist zu Ende");
-				
-				Player p1 = null, p2 = null, p3 = null;
-				
-				for (Player player: player_list) {
-					if (p1 == null || scores.get(p1) < scores.get(player)) {
-						p3 = p2;
-						p2 = p1;
-						p1 = player;
-					} else if (p2 == null || scores.get(p2) < scores.get(player)) {
-						p3 = p2;
-						p2 = player;
-					} else if (p3 == null || scores.get(p3) < scores.get(player)) {
-						p3 = player;
-					}
-				}
-				
-				for (Player player: ghost_list) {
-					if (p1 == null || scores.get(p1) < scores.get(player)) {
-						p3 = p2;
-						p2 = p1;
-						p1 = player;
-					} else if (p2 == null || scores.get(p2) < scores.get(player)) {
-						p3 = p2;
-						p2 = player;
-					} else if (p3 == null || scores.get(p3) < scores.get(player)) {
-						p3 = player;
-					}
-				}
-				
-				sendGameMessage(p1.getDisplayName() + PLUGIN_COLOR + " hat mit " + scores.get(p1) + " Punkten gewonnen!");
-				
-				for (Player p: Bukkit.getOnlinePlayers()) {
-					p.teleport(p.getWorld().getSpawnLocation());
-					p.setGameMode(GameMode.ADVENTURE);
-					p.removePotionEffect(PotionEffectType.BLINDNESS);
-					p.removePotionEffect(PotionEffectType.HUNGER);
-					p.setFoodLevel(20);
-					if (!spectator_list.contains(p)) {
-						sendGameMessage("Du hast " + scores.get(p) + " Punkte erreicht",p);
-					}
-				}
-				
-				sendGameMessage(ChatColor.GOLD + "Du hast den 1. Platz belegt!", p1);
-				sendGameMessage(ChatColor.GRAY + "Du hast den 2. Platz belegt!", p2);
-				sendGameMessage(ChatColor.DARK_GRAY + "Du hast den 3. Platz belegt!", p3);
-				
-				
-				stopGame();
+				endGame();
 			}
 		});
+	}
+	
+	public void endGame() {
+		sendGameMessage("Das Spiel ist zu Ende");
+		
+		List<Player> rank= new ArrayList<Player>();
+		
+		for (Player p: scores.keySet()) {
+			rank.add(p);
+		}
+		
+		for (int i = 1; i <= rank.size(); i++) {
+			sendGameMessage(i + ": " + rank.get(i-1).getDisplayName() + PLUGIN_COLOR + " - " + scores.get(rank.get(i-1)));
+		}
+		
+		for (Player p: Bukkit.getOnlinePlayers()) {
+			p.teleport(p.getWorld().getSpawnLocation());
+			p.setGameMode(GameMode.ADVENTURE);
+			p.removePotionEffect(PotionEffectType.BLINDNESS);
+			p.removePotionEffect(PotionEffectType.HUNGER);
+			p.removePotionEffect(PotionEffectType.INVISIBILITY);
+			p.removePotionEffect(PotionEffectType.SPEED);
+			p.setFoodLevel(20);
+			if (!spectator_list.contains(p)) {
+				sendGameMessage("Du hast " + scores.get(p) + " Punkte erreicht",p);
+			}
+		}
+		
+		
+		stopGame();
+
 	}
 	
 	public void initMap() {
@@ -206,13 +221,22 @@ public class Game implements Listener{
 			for (int y = Math.min(mapcorner1.getBlockY(), mapcorner2.getBlockY()); y <= Math.max(mapcorner1.getBlockY(), mapcorner2.getBlockY()); y++) {
 				for (int z = Math.min(mapcorner1.getBlockZ(), mapcorner2.getBlockZ()); z <= Math.max(mapcorner1.getBlockZ(), mapcorner2.getBlockZ()); z++) {
 					if (mapcorner1.getWorld().getBlockAt(x, y, z).getType() == Material.AIR && (mapcorner1.getWorld().getBlockAt(x, y-1, z).getType() == COIN_BOTTOM_BLOCK || mapcorner1.getWorld().getBlockAt(x, y-1, z).getType() == COIN_BOTTOM_BLOCK2)) {
-						if (r.nextBoolean() && r.nextBoolean()) {
+						if (r.nextInt(4) == 0) {
 							ItemStack coin = new ItemStack(COIN_MATERIAL, 1);
 							ItemMeta meta = coin.getItemMeta();
 							meta.setDisplayName(counter + "");
 							counter++;
 							coin.setItemMeta(meta);
 							mapcorner1.getWorld().dropItem(new Location(mapcorner1.getWorld(), x + 0.5, y, z + 0.5), coin);
+						}
+						
+						if (r.nextInt(200) == 0) {
+							ItemStack powerup = new ItemStack(POWERUP_MATERIAL, 1);
+							ItemMeta meta = powerup.getItemMeta();
+							meta.setDisplayName(counter + "");
+							counter++;
+							powerup.setItemMeta(meta);
+							mapcorner1.getWorld().dropItem(new Location(mapcorner1.getWorld(), x + 0.5, y, z + 0.5), powerup);
 						}
 					}
 				}
@@ -221,6 +245,9 @@ public class Game implements Listener{
 	}
 	
 	public void initPlayer(Player p, Location l) {
+		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title @a times 5 50 5");
+		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + p.getName() + " subtitle");
+		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + p.getName() + " title {text:" + '"' + "Spieler" + '"' + ",color:yellow,bold:true,underlined:false,italic:false,strikethrough:false,obfuscated:false}");
 		p.teleport(l);
 		p.setGameMode(GameMode.ADVENTURE);
 		p.setHealth(20);
@@ -229,8 +256,8 @@ public class Game implements Listener{
 		p.setExp(0);
 		p.setLevel(0);
 		p.setPlayerWeather(WeatherType.DOWNFALL);
-		p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 4, false, true));
-		p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 999999, 1, false, true));
+		p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 0, false, false));
+		p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 999999, 0, false, false));
 		p.setDisplayName(ChatColor.YELLOW + p.getName());
 		p.setPlayerListName(ChatColor.YELLOW + p.getName());
 		scores.put(p, 0);
@@ -246,6 +273,9 @@ public class Game implements Listener{
 	}
 	
 	public void initGhost(Player p, Location l) {
+		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title @a times 5 50 5");
+		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + p.getName() + " subtitle");
+		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + p.getName() + " title {text:" + '"' + "Geist" + '"' + ",color:white,bold:true,underlined:false,italic:false,strikethrough:false,obfuscated:false}");
 		p.teleport(l);
 		p.setGameMode(GameMode.ADVENTURE);
 		p.setHealth(20);
@@ -253,7 +283,8 @@ public class Game implements Listener{
 		p.setFoodLevel(20);
 		p.setExp(0);
 		p.setLevel(0);
-		p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 2, false, true));
+		p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 0, false, false));
+		p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 999999, 1, false, false));
 		p.setDisplayName(ChatColor.WHITE + p.getName());
 		p.setPlayerListName(ChatColor.WHITE + p.getName());
 		scores.put(p, 0);
@@ -297,6 +328,10 @@ public class Game implements Listener{
 		} else {
 			obj = sc.getObjective("PacCraft");
 			obj.unregister();
+			obj = sc.registerNewObjective("PacCraft", "dummy");
+		}
+		
+		while (obj == null) {
 			obj = sc.registerNewObjective("PacCraft", "dummy");
 		}
 		
@@ -376,6 +411,8 @@ public class Game implements Listener{
 			p.setPlayerWeather(WeatherType.CLEAR);
 			p.removePotionEffect(PotionEffectType.BLINDNESS);
 			p.removePotionEffect(PotionEffectType.HUNGER);
+			p.removePotionEffect(PotionEffectType.SPEED);
+			p.removePotionEffect(PotionEffectType.INVISIBILITY);
 			p.getInventory().clear();
 			p.getInventory().setArmorContents(new ItemStack[4]);
 			
@@ -433,6 +470,10 @@ public class Game implements Listener{
 				event.setCancelled(false);
 				return;
 			}
+			if (player_list.contains((Player)event.getDamager()) && ghost_list.contains((Player) event.getEntity()) && powerup.containsKey((Player) event.getDamager())) {
+				event.setCancelled(false);
+				return;
+			}
 		}
 		event.setCancelled(true);
 	}
@@ -472,7 +513,7 @@ public class Game implements Listener{
 	@EventHandler
 	public void onPlayerPickup(PlayerPickupItemEvent event) {
 		Player p = event.getPlayer();
-		if (player_list.contains(p) && event.getItem() != null && event.getItem().getItemStack().getType() == COIN_MATERIAL) {
+		if ((player_list.contains(p) || powerup.containsKey(p)) && event.getItem() != null && event.getItem().getItemStack().getType() == COIN_MATERIAL) {
 			p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 1);
 			event.getItem().remove();
 			
@@ -485,8 +526,45 @@ public class Game implements Listener{
 			} else {
 				coins = 3;
 			}
+			
+			if (powerup.containsKey(p)) {
+				coins *= 2;
+			}
+			
 			scores.put(p, scores.get(p) + coins);
 			updateScoreboard(p);
+		}
+		if (event.getItem() != null && event.getItem().getItemStack().getType() == POWERUP_MATERIAL) {
+			p.playSound(p.getLocation(), Sound.LEVEL_UP, 1, 1);
+			
+			String name = event.getItem().getCustomName();
+			
+			event.getItem().remove();
+			
+			boolean is = false;
+			while (!is) {
+				int x = Math.min(mapcorner1.getBlockX(), mapcorner2.getBlockX()) + r.nextInt(Math.max(mapcorner1.getBlockX(), mapcorner2.getBlockX()) - Math.min(mapcorner1.getBlockX(), mapcorner2.getBlockX()));
+				int y = Math.min(mapcorner1.getBlockY(), mapcorner2.getBlockY()) + r.nextInt(Math.max(mapcorner1.getBlockY(), mapcorner2.getBlockY()) - Math.min(mapcorner1.getBlockY(), mapcorner2.getBlockY()));
+				int z = Math.min(mapcorner1.getBlockZ(), mapcorner2.getBlockZ()) + r.nextInt(Math.max(mapcorner1.getBlockZ(), mapcorner2.getBlockZ()) - Math.min(mapcorner1.getBlockZ(), mapcorner2.getBlockZ()));
+				
+				if (mapcorner1.getWorld().getBlockAt(x, y, z).getType() == Material.AIR && (mapcorner1.getWorld().getBlockAt(x, y-1, z).getType() == COIN_BOTTOM_BLOCK || mapcorner1.getWorld().getBlockAt(x, y-1, z).getType() == COIN_BOTTOM_BLOCK2)) {
+					ItemStack powerup = new ItemStack(POWERUP_MATERIAL, 1);
+					ItemMeta meta = powerup.getItemMeta();
+					meta.setDisplayName(name);
+					powerup.setItemMeta(meta);
+					mapcorner1.getWorld().dropItem(new Location(mapcorner1.getWorld(), x + 0.5, y, z + 0.5), powerup);
+					
+					is = true;
+				}
+			}
+			if (ghost_list.contains(p)) {
+				sendGameMessage("Du hast ein Powerup aufgesammelt! Du kannst jetzt für 30 Sekunden Coins aufsammeln!", p);
+			} else if (player_list.contains(p)) {
+				sendGameMessage("Du hast ein Powerup aufgesammelt! Du kannst jetzt für 30 Sekunden Geister töten!", p);
+			}
+			synchronized (powerup) {
+				powerup.put(p, 30);
+			}
 		}
 		event.setCancelled(true);
 	}
@@ -502,7 +580,7 @@ public class Game implements Listener{
 			sendGameMessage("Du wurdes von " + p2.getDisplayName() + PLUGIN_COLOR + " getötet!", p);
 			sendGameMessage("Du hast " + p.getDisplayName() + PLUGIN_COLOR + " getötet!", p2);
 			
-			scores.put(p2, scores.get(p2) + scores.get(p)/4);
+			scores.put(p2, scores.get(p2) + scores.get(p)/4 + 10);
 			scores.put(p, scores.get(p) - scores.get(p)/4);
 		}
 		
@@ -513,8 +591,8 @@ public class Game implements Listener{
 		Location l = null;
 		if (ghost_list.contains(p)) {
 			l = ghostspawn;
-		} else if (player_list.contains(p)) {
-			l = playerspawns.get(r.nextInt(playerspawns.size()));;
+		} else {
+			l = playerspawns.get(r.nextInt(players));
 		}
 		final Location spawnpoint = l;
 		
@@ -525,10 +603,11 @@ public class Game implements Listener{
 				p.spigot().respawn();
 				p.teleport(spawnpoint);
 				if (player_list.contains(p)) {
-					p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 4, false, true));
-					p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 999999, 1, false, true));
+					p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 0, false, false));
+					p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 999999, 0, false, false));
 				} else if (ghost_list.contains(p)) {
-					p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 2, false, true));
+					p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 999999, 0, false, false));
+					p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 999999, 1, false, false));
 				}
 			}
 		}, 60L);
@@ -558,7 +637,12 @@ public class Game implements Listener{
 			if (event.getItem().equals((Items.Shop()))) {
 				//und das Item das Shop-Item ist
 				event.setCancelled(true);
-				event.getPlayer().openInventory(LootBoxen.getShopInventory());
+				
+				if (player_list.contains(event.getPlayer())) {
+					event.getPlayer().openInventory(LootBoxen.getShopInventory());
+				} else if (ghost_list.contains(event.getPlayer())) {
+					event.getPlayer().openInventory(LootBoxen.getGhostShopInventory());
+				}
 				//Öffne das Shop-Inventar
 			}
 		}
@@ -572,35 +656,41 @@ public class Game implements Listener{
 		Player p = (Player) event.getWhoClicked();
 		//p ist der Spieler der geklickt hat
 				
-		if (event.getInventory().getName().equals(LootBoxen.getShopInventory().getName())) {		
+		if (event.getInventory().getName().equals(LootBoxen.getShopInventory().getName()) && clicked_item != null) {		
 			//wenn das Shop Inventar offen ist
 			if (clicked_item.equals(LootBoxen.Nahrung())) {
 				//und das NahrungsItem Angeklickt wurde
 				if(scores.get(p)>=1){
-				//und der Spieler genug Geld hat
-				p.getInventory().addItem(LootBoxen.Nahrung());
-				//Gebe dem Spieler ein Huhn
-				scores.put(p, scores.get(p)-1);
-				//Und entferne ein Geld
-			}}else if(clicked_item.equals(LootBoxen.SpeedTrank())){
-				if(scores.get(p)>=5){
 					//und der Spieler genug Geld hat
-					p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 2, false, true));
-					scores.put(p, scores.get(p)-10);
+					p.getInventory().addItem(LootBoxen.Nahrung());
+					//Gebe dem Spieler ein Huhn
+					scores.put(p, scores.get(p)-1);
 					//Und entferne ein Geld
 				}
-			}}else if(clicked_item.equals(LootBoxen.HeilTrank())){
-				if(scores.get(p)>=10){
+			} else if(clicked_item.equals(LootBoxen.SpeedTrank())){
+				if(scores.get(p)>=15){
 					//und der Spieler genug Geld hat
-					p.setHealth(p.getHealth()+3);
-					scores.put(p, scores.get(p)-10);
+					p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 300, 1, false, false));
+					sendGameMessage("Du hast einen Schnelligkeitstrank gekauft!", p);
+					scores.put(p, scores.get(p)-15);
+					//Und entferne ein Geld
+				}
+			} else if(clicked_item.equals(LootBoxen.HeilTrank())){
+				if(scores.get(p)>=20){
+					//und der Spieler genug Geld hat
+					p.setHealth(p.getHealth()+6);
+					scores.put(p, scores.get(p)-20);
+					sendGameMessage("Du hast einen Heiltrank gekauft!", p);
 					//Und entferne ein Geld
 				}	
 			}else if(clicked_item.equals(LootBoxen.Multiplyer())){
-				if(scores.get(p)>=100){
+				if(scores.get(p)>=50){
 					//und der Spieler genug Geld hat
-					
-					scores.put(p, scores.get(p)-100);
+					synchronized(multiplyer) {
+						multiplyer.put(p, 30);
+						sendGameMessage("Du hast einen Multiplikator aktiviert!", p);
+					}
+					scores.put(p, scores.get(p)-50);
 					//Und entferne ein Geld
 				}	
 			}

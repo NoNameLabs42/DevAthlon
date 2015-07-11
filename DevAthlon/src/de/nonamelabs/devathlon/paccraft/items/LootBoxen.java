@@ -19,7 +19,16 @@ public class LootBoxen {
 		Shop.setItem(1, new ItemStack(Nahrung()));					//Der zweite Slot im Inventar, ist das Item um Essen zu kaufen
 		Shop.setItem(3, new ItemStack(HeilTrank()));
 		Shop.setItem(5, new ItemStack(SpeedTrank()));
-		Shop.setItem(6, new ItemStack(Multiplyer()));
+		Shop.setItem(7, new ItemStack(Multiplyer()));
+		
+		/*Shop.setItem(4, new ItemStack(getArmorUpgrade()));		/Entfernte Funktion, sollte eigentlich Waffen und Rüstung verbessern
+		Shop.setItem(7, new ItemStack(getWeaponUpgrade()));*/
+	}
+	
+	public static Inventory GhostShop = Bukkit.createInventory(null, 9, ChatColor.RED + "Kaufe Nahrung und Tränke");
+	static {			//Der zweite Slot im Inventar, ist das Item um Essen zu kaufen
+		GhostShop.setItem(2, new ItemStack(HeilTrank()));
+		GhostShop.setItem(6, new ItemStack(SpeedTrank()));
 		
 		/*Shop.setItem(4, new ItemStack(getArmorUpgrade()));		/Entfernte Funktion, sollte eigentlich Waffen und Rüstung verbessern
 		Shop.setItem(7, new ItemStack(getWeaponUpgrade()));*/
@@ -37,6 +46,10 @@ public class LootBoxen {
 	
 	public static Inventory getShopInventory() {
 		return Shop;								//gibt Inventar zurück
+	}
+	
+	public static Inventory getGhostShopInventory() {
+		return GhostShop;
 	}
 	
 	/*public static Inventory getArmorUpgradeInventory() {
@@ -62,7 +75,7 @@ public class LootBoxen {
 		ItemStack item = new ItemStack(Material.POTION);	
 		List<String> lore = new ArrayList<String>();				
 		lore.add(ChatColor.GREEN + "Heiltrank");	
-		lore.add(ChatColor.GREEN + "10 Punkte");				
+		lore.add(ChatColor.GREEN + "20 Punkte");				
 		ItemMeta meta = item.getItemMeta();
 		meta.setDisplayName(ChatColor.BLUE + "Trinken für tote Kerlchen");	
 		meta.setLore(lore);
@@ -74,7 +87,7 @@ public class LootBoxen {
 		ItemStack item = new ItemStack(Material.POTION);	
 		List<String> lore = new ArrayList<String>();				
 		lore.add(ChatColor.GREEN + "Speedtrank");	
-		lore.add(ChatColor.GREEN + "5 Punkte");				
+		lore.add(ChatColor.GREEN + "15 Punkte");				
 		ItemMeta meta = item.getItemMeta();
 		meta.setDisplayName(ChatColor.BLUE + "Trinken für langsame Kerlchen");	
 		meta.setLore(lore);
@@ -87,7 +100,7 @@ public class LootBoxen {
 		List<String> lore = new ArrayList<String>();				
 		lore.add(ChatColor.GREEN + "Man bekommt doppelt so viel Gold wie ursprünglich");
 		lore.add(ChatColor.GREEN + "Hält eine Minute");
-		lore.add(ChatColor.GREEN + "100 Punkte");				
+		lore.add(ChatColor.GREEN + "50 Punkte");				
 		ItemMeta meta = item.getItemMeta();
 		meta.setDisplayName(ChatColor.BLUE + "Doppelt so viel Gold");	
 		meta.setLore(lore);
