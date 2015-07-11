@@ -14,7 +14,7 @@ public class LootBoxen {
 	//Alles von PhoenixofForce
 	
 	//Inventar Shop															//Name in Rot
-	public static Inventory Shop = Bukkit.createInventory(null, 9, ChatColor.RED + "Kaufe Nahrung, Tränke, verbesser deine Rüstung und Waffen");
+	public static Inventory Shop = Bukkit.createInventory(null, 9, ChatColor.RED + "Kaufe Nahrung und Tränke");
 	static {
 		Shop.setItem(1, new ItemStack(Nahrung()));					//Der zweite Slot im Inventar, ist das Item um Essen zu kaufen
 		/*Shop.setItem(4, new ItemStack(getArmorUpgrade()));		/Entfernte Funktion, sollte eigentlich Waffen und Rüstung verbessern
