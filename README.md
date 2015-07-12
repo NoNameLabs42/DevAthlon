@@ -33,15 +33,18 @@ Mit dem Befehl /togglePvP kann man einstellen ob normale Spieler sich schlagen d
 
 
 Um nicht extra eine Map zu bauen, wird die von uns selbstgebaute Map emfhohlen. Download Link:
-http://workupload.com/file/zZqX2sYE
+http://workupload.com/file/6X7FyfGp
 
 Wenn unsere Map zum testen benutzt wird muss folgendes Archiv als entpackte Datei in den PlugIns-Ordner des Servers
 eingefügt werden, sodass im PlugIns-Ordner der DevAthlon-Ordner vorhanden ist. Wenn sich in diesem DevAthlon Ordner die Datei "config.yml" befindet, dann hast du keinen Felher gemacht. Ist jedoch im DevAthlon-Ordner ein zweiter DevAthlon-Ordner enthalten, musst du die "config.yml" aus dem zweiten DevAthlon-Ordner rauskopieren und in den ersten DevAthlon-Ordner einfügen, anschließend kann der zweite DevAthlon-Ordner gelöscht werden. Das muss gmeacht werden, damit die Spawnpunkte und Mapecken nicht noch mal neu gesetzt werden müssen, sondern aus der Datei entnommen werden. Download Link:
-http://workupload.com/file/ZRSIyR9y
+http://workupload.com/file/cLHRrXRT
 
 Ebenso ist ein ausführliches Handbuch, wo alles noch viel genauer erklärt wird, vorhanden. Download Link:
-http://workupload.com/file/FwNFSL1h
+http://workupload.com/file/NKk36GnJ
 
 Empholene Spieleinstellungen:
 -PvP aus
 - 1/5 der Spieler sind Geister
+
+Alternativer Donwload Link für das Plugin:
+http://workupload.com/file/89CnZ8ML
