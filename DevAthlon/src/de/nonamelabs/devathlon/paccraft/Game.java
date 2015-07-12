@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -52,7 +53,7 @@ public class Game implements Listener{
 	//Von Lau
 	public static final ChatColor PLUGIN_COLOR = ChatColor.AQUA;
 	public static final ChatColor CHATCOLOR = ChatColor.WHITE;
-	public static final ChatColor PLUGIN_NAME_COLOR = ChatColor.DARK_PURPLE;
+	public static final ChatColor PLUGIN_NAME_COLOR = ChatColor.LIGHT_PURPLE;
 	public static final Material COIN_MATERIAL = Material.GOLD_NUGGET;
 	public static final Material POWERUP_MATERIAL = Material.EMERALD;
 	public static final Material COIN_BOTTOM_BLOCK = Material.BARRIER;	
@@ -76,39 +77,37 @@ public class Game implements Listener{
 	public Location mapcorner2;	
 	public String remainingTime;
 	public boolean task_running = true;
+	public boolean pvp_allowed;
 	
-	
-	public Game(int players, int ghosts, List<Location> playerspawns, Location ghostspawn, Location mapcorner1, Location mapcorner2) {
+	public Game(int players, int ghosts, List<Location> playerspawns, Location ghostspawn, Location mapcorner1, Location mapcorner2, boolean pvp_allowed) {
+		//Für alle Spieler ein Scoreboard erstellen
 		for (Player p: Bukkit.getOnlinePlayers()) {
 			Scoreboard sc = Bukkit.getScoreboardManager().getNewScoreboard();
 			scoreboards.put(p, sc);
 			p.setScoreboard(sc);
 		}
 		
+		//Alle Spieler zufällig in eine Liste ensortieren
+		List<Player> start_player_list = new ArrayList<Player>();
 		for (Player p:Bukkit.getOnlinePlayers()) {
-					
-			if (r.nextBoolean()) {
-				if (player_list.size() < players) {
-					player_list.add(p);
-					initPlayer(p, playerspawns.get(player_list.size()-1));
-				} else if (ghost_list.size() < ghosts) {
-					ghost_list.add(p);
-					initGhost(p, ghostspawn);
-				} else {
-					spectator_list.add(p);
-					initSpectator(p, ghostspawn);
-				}
+			if (start_player_list.size() == 0) {
+				start_player_list.add(p);
 			} else {
-				if (ghost_list.size() < ghosts) {
-					ghost_list.add(p);
-					initGhost(p, ghostspawn);
-				} else if (player_list.size() < players) {
-					player_list.add(p);
-					initPlayer(p, playerspawns.get(player_list.size()-1));
-				} else {
-					spectator_list.add(p);
-					initSpectator(p, ghostspawn);
-				}
+				start_player_list.add(r.nextInt(start_player_list.size() + 1), p);
+			}
+		}
+		
+		//Jedem Spieler aus der Liste Spieler/Geist/Spectator zuordnen
+		for (Player p: start_player_list) {
+			if (player_list.size() < players) {
+				player_list.add(p);
+				initPlayer(p, playerspawns.get(player_list.size()-1));
+			} else if (ghost_list.size() < ghosts) {
+				ghost_list.add(p);
+				initGhost(p, ghostspawn);
+			} else {
+				spectator_list.add(p);
+				initSpectator(p, ghostspawn);
 			}
 		}
 		
@@ -118,9 +117,16 @@ public class Game implements Listener{
 		this.mapcorner1 = mapcorner1;
 		this.mapcorner2 = mapcorner2;
 		this.playerspawns = playerspawns;
+		this.pvp_allowed = pvp_allowed;
 		
+		//Zeit und Subtitle für Spieler
+		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title @a times 5 50 5");
+		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title @a subtitle");
+		
+		//Map initialiosieren
 		initMap();
 		
+		//Der Spiel Task, der jede Sekunde etwas macht
 		Bukkit.getScheduler().runTaskAsynchronously(Plugin_DevAthlon.Instance, new Runnable() {
 			
 			@Override
@@ -184,37 +190,67 @@ public class Game implements Listener{
 		});
 	}
 	
+	/**
+	 * Beendet das Spiel und schreibt das Ergebnis in den Chat
+	 */
 	public void endGame() {
 		sendGameMessage("Das Spiel ist zu Ende");
 		
-		List<Player> rank= new ArrayList<Player>();
+		//Spieler mithilfe einer TreeMap sortieren
+		TreeMap<Integer, List<Player>> rank= new TreeMap<Integer, List<Player>>();
 		
 		for (Player p: scores.keySet()) {
-			rank.add(p);
-		}
-		
-		for (int i = 1; i <= rank.size(); i++) {
-			sendGameMessage(i + ": " + rank.get(i-1).getDisplayName() + PLUGIN_COLOR + " - " + scores.get(rank.get(i-1)));
-		}
-		
-		for (Player p: Bukkit.getOnlinePlayers()) {
-			p.teleport(p.getWorld().getSpawnLocation());
-			p.setGameMode(GameMode.ADVENTURE);
-			p.removePotionEffect(PotionEffectType.BLINDNESS);
-			p.removePotionEffect(PotionEffectType.HUNGER);
-			p.removePotionEffect(PotionEffectType.INVISIBILITY);
-			p.removePotionEffect(PotionEffectType.SPEED);
-			p.setFoodLevel(20);
-			if (!spectator_list.contains(p)) {
-				sendGameMessage("Du hast " + scores.get(p) + " Punkte erreicht",p);
+			if (rank.containsKey(scores.get(p))) {
+				List<Player> pl = rank.get(scores.get(p));
+				pl.add(p);
+				rank.put(scores.get(p), pl);
+			} else {
+				List<Player> pl = new ArrayList<Player>();
+				pl.add(p);
+				rank.put(scores.get(p), pl);
 			}
 		}
 		
+		//Spieler Liste umdrehen
+		List<Player> sorted_player_list = new ArrayList<Player>();
 		
-		stopGame();
+		for (int i: rank.keySet()) {
+			for (Player p: rank.get(i)) {
+				sorted_player_list.add(p);
+			}
+		}
+		
+		//Spieler Liste ausgeben
+		for (int pos = sorted_player_list.size() - 1; pos >= 0; pos--) {
+			sendGameMessage(sorted_player_list.size() - pos + ": " + sorted_player_list.get(pos).getDisplayName() + PLUGIN_COLOR + " - " + scores.get(sorted_player_list.get(pos)));
+		}
+		
+		//Spieler wieder in die Lobby teleportieren
+		Bukkit.getScheduler().runTask(Plugin_DevAthlon.Instance, new Runnable() {
+			
+			@Override
+			public void run() {
+				for (Player p: Bukkit.getOnlinePlayers()) {
+					p.teleport(p.getWorld().getSpawnLocation());
+					p.setGameMode(GameMode.ADVENTURE);
+					p.removePotionEffect(PotionEffectType.BLINDNESS);
+					p.removePotionEffect(PotionEffectType.HUNGER);
+					p.removePotionEffect(PotionEffectType.INVISIBILITY);
+					p.removePotionEffect(PotionEffectType.SPEED);
+					p.setFoodLevel(20);
+				}
+				
+				
+				stopGame();
+			}
+		});
+			
 
 	}
 	
+	/**
+	 * Coins und PowerUps in der Map spawnen (Auf holz und Barrier)
+	 */
 	public void initMap() {
 		int counter = 0;
 		for (int x = Math.min(mapcorner1.getBlockX(), mapcorner2.getBlockX()); x <= Math.max(mapcorner1.getBlockX(), mapcorner2.getBlockX()); x++) {
@@ -244,10 +280,12 @@ public class Game implements Listener{
 		}
 	}
 	
+	/**
+	 * Spieler initialisieren
+	 */
 	public void initPlayer(Player p, Location l) {
-		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title @a times 5 50 5");
-		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + p.getName() + " subtitle");
 		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + p.getName() + " title {text:" + '"' + "Spieler" + '"' + ",color:yellow,bold:true,underlined:false,italic:false,strikethrough:false,obfuscated:false}");
+				
 		p.teleport(l);
 		p.setGameMode(GameMode.ADVENTURE);
 		p.setHealth(20);
@@ -266,16 +304,18 @@ public class Game implements Listener{
 		inv.clear();	
 		inv.setArmorContents(new ItemStack[] {Armor.PlayerBoots(), Armor.PlayerLegs(), Armor.PlayerChest(), Armor.PlayerHelm()});
 		inv.setItem(8, Items.Shop());
-		inv.setItem(0, Weapons.WoodenSword());
+		inv.setItem(0, Weapons.IronSword());
 		
 		sendGameMessage("Du bist ein Spieler!", p);
 		updateScoreboards();
 	}
 	
+	/**
+	 * Geist initialisieren
+	 */
 	public void initGhost(Player p, Location l) {
-		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title @a times 5 50 5");
-		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + p.getName() + " subtitle");
 		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "title " + p.getName() + " title {text:" + '"' + "Geist" + '"' + ",color:white,bold:true,underlined:false,italic:false,strikethrough:false,obfuscated:false}");
+				
 		p.teleport(l);
 		p.setGameMode(GameMode.ADVENTURE);
 		p.setHealth(20);
@@ -299,6 +339,9 @@ public class Game implements Listener{
 		updateScoreboards();
 	}
 	
+	/**
+	 * Spectator initialisieren
+	 */
 	public void initSpectator(Player p, Location l) {
 		p.teleport(l);
 		p.setGameMode(GameMode.SPECTATOR);
@@ -313,12 +356,18 @@ public class Game implements Listener{
 		updateScoreboard(p);
 	}
 	
+	/**
+	 * Scoreboards updaten
+	 */
 	public void updateScoreboards() {
 		for (Player p: Bukkit.getOnlinePlayers()) {
 			updateScoreboard(p);
 		}
 	}
 	
+	/**
+	 * Scoreboard eines bestimmten Spielers updaten
+	 */
 	public void updateScoreboard(Player p) {
 		Scoreboard sc = scoreboards.get(p);
 		Objective obj;
@@ -331,7 +380,7 @@ public class Game implements Listener{
 			obj = sc.registerNewObjective("PacCraft", "dummy");
 		}
 		
-		while (obj == null) {
+		while (obj == null || !obj.isModifiable()) {
 			obj = sc.registerNewObjective("PacCraft", "dummy");
 		}
 		
@@ -352,7 +401,7 @@ public class Game implements Listener{
 		obj.getScore(PLUGIN_COLOR + "Geister: " + ghost_list.size()).setScore(curr++);
 		obj.getScore(PLUGIN_COLOR + "Spieler: " + player_list.size()).setScore(curr++);
 		obj.getScore(ChatColor.RESET + "---------------").setScore(curr++);
-		
+		//Die besten drei Spieler ermitteln
 		Player p1 = null, p2 = null, p3 = null;
 		
 		for (Player player: player_list) {
@@ -388,14 +437,23 @@ public class Game implements Listener{
 		obj.getScore(PLUGIN_COLOR + "Zeit: " + remainingTime).setScore(curr++);
 	}
 	
+	/**
+	 * Formatierte Spielnachricht senden
+	 */
 	public void sendGameMessage(String message) {
-		Bukkit.broadcastMessage(PLUGIN_COLOR + "[" + PLUGIN_NAME_COLOR + "PacCraft" + PLUGIN_COLOR + "] " + message);
+		Bukkit.broadcastMessage(ChatColor.GRAY + "[" + PLUGIN_NAME_COLOR + "PacCraft" + ChatColor.GRAY + "] " + PLUGIN_COLOR + message);
 	}
 	
+	/**
+	 * Formatierte Spielnachricht an einen Spieler senden
+	 */
 	public void sendGameMessage(String message, Player p) {
-		p.sendMessage(PLUGIN_COLOR + "[" + PLUGIN_NAME_COLOR + "PacCraft" + PLUGIN_COLOR + "] " + message);
+		p.sendMessage(ChatColor.GRAY + "[" + PLUGIN_NAME_COLOR + "PacCraft" + ChatColor.GRAY + "] " + PLUGIN_COLOR + message);
 	}
 	
+	/**
+	 * Spiel beenden
+	 */
 	public void stopGame() {
 		HandlerList.unregisterAll(this);
 		
@@ -422,6 +480,10 @@ public class Game implements Listener{
 		task_running = false;
 	}
 	//Events-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+	/**
+	 * wenn ein Spieler joint ihn zum Spectator machen
+	 */
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		event.setJoinMessage("");
@@ -429,20 +491,29 @@ public class Game implements Listener{
 		Scoreboard sc = Bukkit.getScoreboardManager().getNewScoreboard();
 		scoreboards.put(event.getPlayer(), sc);
 		event.getPlayer().setScoreboard(sc);
-		
+
+		event.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);
+				
 		spectator_list.add(event.getPlayer());
 		initSpectator(event.getPlayer(), ghostspawn);
 	}
 	
+	/**
+	 * Wenn ein Spieler leftet ihn von allen Listen entfernen
+	 */
 	@EventHandler
 	public void onPlayerLeave(PlayerQuitEvent event) {
+		event.getPlayer().getInventory().clear();
+		event.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);;
 		event.setQuitMessage("");
 		if (ghost_list.contains(event.getPlayer())) {
 			ghost_list.remove(event.getPlayer());
+			scores.remove(event.getPlayer());
 			sendGameMessage(event.getPlayer().getName() + " hat das Spiel verlassen! Es gibt noch " + ghost_list.size() + " Geister!");
 			updateScoreboards();
 		} else if (player_list.contains(event.getPlayer())) {
 			player_list.remove(event.getPlayer());
+			scores.remove(event.getPlayer());
 			sendGameMessage(event.getPlayer().getName() + " hat das Spiel verlassen! Es gibt noch " + player_list.size() + " Spieler!");
 			updateScoreboards();
 		} else {
@@ -451,6 +522,9 @@ public class Game implements Listener{
 		scoreboards.remove(event.getPlayer());
 	}
 	
+	/**
+	 * Wenn ein Spieler Schaden von nicht hunger oder von Entity bekommt soll es nicht ausgeführt werden
+	 */
 	@EventHandler
 	public void onPlayerDamage(EntityDamageEvent event) {
 		if (!event.getCause().equals(DamageCause.ENTITY_ATTACK) && !event.getCause().equals(DamageCause.STARVATION)) {
@@ -458,11 +532,17 @@ public class Game implements Listener{
 		}
 	}
 	
+	/**
+	 * Items nicht kaputt gehen lassen
+	 */
 	@EventHandler
 	public void onItemDamage(PlayerItemDamageEvent event) {
 		event.setCancelled(true);
 	}
 	
+	/**
+	 * wenn ein Spieler einen anderen Spieler angreift
+	 */
 	@EventHandler
 	public void onPlayerDamagePlayer(EntityDamageByEntityEvent event) {
 		if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
@@ -474,10 +554,18 @@ public class Game implements Listener{
 				event.setCancelled(false);
 				return;
 			}
+			
+			if (pvp_allowed && player_list.contains((Player) event.getDamager()) && player_list.contains((Player) event.getEntity())) {
+				event.setCancelled(false);
+				return;
+			}
 		}
 		event.setCancelled(true);
 	}
 	
+	/**
+	 * wenn ein Spieler hunger verliert
+	 */
 	@EventHandler
 	public void onPlayerLooseHunger(FoodLevelChangeEvent event) {
 		if (!player_list.contains((Player) event.getEntity()) || r.nextBoolean()) {
@@ -487,11 +575,16 @@ public class Game implements Listener{
 		}
 	}
 	
+	/**
+	 * man darf nichts droppen 
+	 */
 	@EventHandler
 	public void onPlayerDrop(PlayerDropItemEvent event) {
 		event.setCancelled(true);
 	}
-	
+	/**
+	 * Chat nachrichten formatieren
+	 */
 	@EventHandler
 	public void onPlayerChat(AsyncPlayerChatEvent event) {
 		if (event.getMessage().contains("%")) {
@@ -510,6 +603,9 @@ public class Game implements Listener{
 		event.setFormat(color + "%1$s" + CHATCOLOR + ": " + "%2$s");
 	}
 	
+	/**
+	 * Pickup von Coins und PowerUps
+	 */
 	@EventHandler
 	public void onPlayerPickup(PlayerPickupItemEvent event) {
 		Player p = event.getPlayer();
@@ -569,6 +665,9 @@ public class Game implements Listener{
 		event.setCancelled(true);
 	}
 	
+	/**
+	 * Spieler tot
+	 */
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		final Player p = event.getEntity();
@@ -592,7 +691,7 @@ public class Game implements Listener{
 		if (ghost_list.contains(p)) {
 			l = ghostspawn;
 		} else {
-			l = playerspawns.get(r.nextInt(players));
+			l = playerspawns.get(r.nextInt(playerspawns.size()));
 		}
 		final Location spawnpoint = l;
 		
@@ -610,7 +709,7 @@ public class Game implements Listener{
 					p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 999999, 1, false, false));
 				}
 			}
-		}, 60L);
+		}, 20L);
 	}
 	
 	//Von PhoenixoForce
@@ -678,7 +777,7 @@ public class Game implements Listener{
 			} else if(clicked_item.equals(LootBoxen.HeilTrank())){
 				if(scores.get(p)>=20){
 					//und der Spieler genug Geld hat
-					p.setHealth(p.getHealth()+6);
+					p.setHealth(Math.min(20, (p.getHealth()+6)));
 					scores.put(p, scores.get(p)-20);
 					sendGameMessage("Du hast einen Heiltrank gekauft!", p);
 					//Und entferne ein Geld
