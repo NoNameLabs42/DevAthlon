@@ -23,3 +23,6 @@ commands:
   setMapCorner2:
     description: Setzt die zweite Ecke des Spiels
     usage: /setMapCorner2
+  togglePvP:
+    description: Erlaubt Spielern andere Spieler zu toeten
+    usage: /togglePvP

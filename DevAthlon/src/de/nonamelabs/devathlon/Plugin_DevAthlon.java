@@ -27,6 +27,7 @@ public class Plugin_DevAthlon extends JavaPlugin{
 	public Location ghostspawn;
 	public int registered_playerspawns;
 	public Location mapcorner1, mapcorner2;
+	public boolean isPvpAllowed = false;
 	
 	//Spiel
 	public Game game;
@@ -50,6 +51,9 @@ public class Plugin_DevAthlon extends JavaPlugin{
 		logger.info("Plugin wurde gestoppt!");
 	}
 	
+	/**
+	 * Speichert die Einstellungen zu Spawnpunkten und Map in der Config Datei ab
+	 */
 	public void loadConfig() {
     	FileConfiguration config = getConfig();
     	
@@ -57,19 +61,25 @@ public class Plugin_DevAthlon extends JavaPlugin{
     	registered_playerspawns = config.getInt("Playerspawnanzahl");
     	mapcorner1 = (Location) config.get("MapEcke1");
     	mapcorner2 = (Location) config.get("MapEcke2");
+    	isPvpAllowed = config.getBoolean("isPvPAllowed");
+    	
     	for (int i = 0; i < registered_playerspawns; i++) {
     		playerspawns.add((Location) config.get("Playerspawn" + i));
     	}
     	    	
     	saveConfig();
     }
-    
+
+	/**
+	 * Lädt die Einstellungen zu Spawnpunkten und Map aus der Config Datei
+	 */
     public void save_Config() {
     	FileConfiguration config = getConfig();
     	
     	config.set("Geisterspawn", ghostspawn);
     	config.set("MapEcke1", mapcorner1);
     	config.set("MapEcke2", mapcorner2);
+    	config.set("isPvPAllowed", isPvpAllowed);
     	
     	registered_playerspawns = playerspawns.size();
     	config.set("Playerspawnanzahl", registered_playerspawns);
@@ -80,8 +90,8 @@ public class Plugin_DevAthlon extends JavaPlugin{
     	saveConfig();
     }
 	
+    
 	public boolean onCommand(CommandSender sender, Command command, String commandlabel, String[] args) {
-		
 		if (commandlabel.equalsIgnoreCase("addPlayerSpawn")) {
 			if (!(sender instanceof Player)) {
 				sender.sendMessage(ChatColor.RED + "Du bist kein Spieler!");
@@ -148,6 +158,19 @@ public class Plugin_DevAthlon extends JavaPlugin{
 			
 			p.sendMessage(ChatColor.GREEN + "Deine Aktuelle Position wurde als Ecke der Map gesetzt.");
 			return true;
+		} else if (commandlabel.equalsIgnoreCase("togglepvp")) {
+			if (args.length != 0) {
+				return false;
+			}
+			
+			isPvpAllowed = !isPvpAllowed;
+			
+			if (isPvpAllowed) {
+				sender.sendMessage(ChatColor.GREEN + "PvP ist jetzt erlaubt.");
+			} else {
+				sender.sendMessage(ChatColor.GREEN + "PvP ist jetzt nicht mehr erlaubt.");
+			}
+			return true;
 		} else if (commandlabel.equalsIgnoreCase("startgame")) {
 			if (args.length != 2) {
 				sender.sendMessage(ChatColor.RED + "Das erste Argument muss die Anzahl der Spieler sein und das zweite Argument muss die Anzahl der Geister sein!");
@@ -206,8 +229,8 @@ public class Plugin_DevAthlon extends JavaPlugin{
 			
 			sender.sendMessage(ChatColor.GREEN + "Das Spiel wurde mit " + players + " Spielern und " + ghosts + " Geistern gestartet!");
 			
-			game = new Game(players, ghosts, playerspawns, ghostspawn, mapcorner1, mapcorner2);
-			getServer().getPluginManager().registerEvents(game, this);
+			game = new Game(players, ghosts, playerspawns, ghostspawn, mapcorner1, mapcorner2, isPvpAllowed); //Spiel starten
+			getServer().getPluginManager().registerEvents(game, this); //Spiel Listener registrieren
 			
 			return true;
 		} else if (commandlabel.equalsIgnoreCase("stopgame")) {
